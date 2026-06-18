@@ -1,0 +1,13 @@
+services:
+  - type: web
+    runtime: static
+    name: pob-planificados
+    rootDir: pob-planificados
+    staticPublishPath: .
+    buildCommand: ""
+  - type: web
+    runtime: static
+    name: pob-ejecutados
+    rootDir: pob-ejecutados
+    staticPublishPath: .
+    buildCommand: ""
