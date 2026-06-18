@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>POB Digital · Resultado POB</title>
+<style>
+  :root {
+    --ocasa-ink:#1a2740; --ocasa-blue:#2563a8; --ocasa-cyan:#19b9c4; --ocasa-cyan-soft:#e6f7f8;
+    --bg:#f4f6f9; --card:#fff; --line:#e4e9f0; --text:#1a2740; --muted:#6b7a90;
+    --pend:#d98324; --pend-bg:#fdf1e3; --reti:#1f9d57; --reti-bg:#e6f6ec;
+    --fin:#5b6b8c; --fin-bg:#eef1f6; --canc:#c0392b; --canc-bg:#fbecea;
+    --frozen:#3b6fd4; --frozen-bg:#eaf0fc; --refri:#14a7b3; --refri-bg:#e3f6f7; --amb:#8a6d3b; --amb-bg:#f6efe3;
+    --shadow:0 1px 3px rgba(26,39,64,.06),0 4px 16px rgba(26,39,64,.04); --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;}
+  body{padding-bottom:40px;}
+  .topbar{background:var(--card);border-bottom:1px solid var(--line);padding:14px 18px;position:sticky;top:0;z-index:30;}
+  .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .logo{font-weight:800;font-size:19px;letter-spacing:-.5px;color:var(--ocasa-ink);}
+  .brand .logo span{color:var(--ocasa-cyan);}
+  .brand .sub{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;border-left:1px solid var(--line);padding-left:10px;}
+  .lang{display:flex;gap:2px;background:var(--bg);border-radius:9px;padding:3px;}
+  .lang button{border:0;background:transparent;font-size:12px;font-weight:700;color:var(--muted);padding:5px 9px;border-radius:7px;cursor:pointer;font-family:inherit;}
+  .lang button.on{background:var(--card);color:var(--ocasa-blue);box-shadow:0 1px 2px rgba(0,0,0,.08);}
+  .agentbar{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;color:var(--muted);}
+  .agentbar .who{color:var(--text);font-weight:700;}
+  .agentbar .dot{width:7px;height:7px;border-radius:50%;background:#28c76f;flex:none;}
+  .head{padding:20px 18px 8px;}
+  .head h1{font-size:23px;font-weight:800;letter-spacing:-.6px;}
+  .head .date{color:var(--muted);font-size:13px;margin-top:3px;font-weight:500;}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 18px 4px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 10px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .15s,transform .1s;text-align:center;}
+  .stat:active{transform:scale(.97);}
+  .stat.on{border-color:var(--ocasa-cyan);box-shadow:0 0 0 2px var(--ocasa-cyan-soft);}
+  .stat .n{font-size:24px;font-weight:800;letter-spacing:-1px;line-height:1;}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-top:6px;}
+  .stat.total .n{color:var(--ocasa-cyan);}
+  .stat.pend .n{color:var(--pend);} .stat.reti .n{color:var(--reti);} .stat.canc .n{color:var(--canc);}
+  .search{padding:12px 18px 6px;}
+  .search input{width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:14.5px;font-family:inherit;color:var(--text);box-shadow:var(--shadow);}
+  .search input:focus{outline:none;border-color:var(--ocasa-cyan);}
+  .list{padding:8px 14px 0;display:flex;flex-direction:column;gap:9px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s;}
+  .card:active{transform:scale(.985);}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .card .doc{font-size:14.5px;font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums;}
+  .card .cli{font-size:12.5px;color:var(--muted);margin-top:3px;font-weight:600;}
+  .stbadge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:5px 9px;border-radius:7px;white-space:nowrap;flex:none;display:flex;align-items:center;gap:5px;}
+  .stbadge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .stbadge.pendiente{background:var(--pend-bg);color:var(--pend);}
+  .stbadge.retirado{background:var(--reti-bg);color:var(--reti);}
+  .stbadge.finalizado{background:var(--fin-bg);color:var(--fin);}
+  .stbadge.cancelado{background:var(--canc-bg);color:var(--canc);}
+  .route{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);font-size:12.5px;}
+  .route .city{font-weight:700;color:var(--text);}
+  .route .arrow{color:var(--muted);flex:none;}
+  .route .svc{margin-left:auto;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:4px 8px;border-radius:6px;}
+  .svc.CONGELADO{background:var(--frozen-bg);color:var(--frozen);} .svc.REFRIGERADO{background:var(--refri-bg);color:var(--refri);}
+  .svc.AMBIENTE{background:var(--amb-bg);color:var(--amb);} .svc.OTRO{background:var(--fin-bg);color:var(--fin);}
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:14px;}
+  .scrim{position:fixed;inset:0;background:rgba(26,39,64,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40;}
+  .scrim.on{opacity:1;pointer-events:auto;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:22px 22px 0 0;z-index:50;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);max-height:88vh;overflow-y:auto;padding-bottom:28px;}
+  .sheet.on{transform:translateY(0);}
+  .sheet-grip{width:40px;height:4px;background:var(--line);border-radius:3px;margin:10px auto 4px;}
+  .sheet-head{padding:8px 20px 16px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .sheet-head .doc{font-size:19px;font-weight:800;letter-spacing:-.5px;}
+  .sheet-head .sub{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px;}
+  .sheet-close{border:0;background:var(--bg);width:32px;height:32px;border-radius:50%;font-size:18px;color:var(--muted);cursor:pointer;flex:none;line-height:1;}
+  .sheet-body{padding:6px 20px;}
+  .field{padding:14px 0;border-bottom:1px solid var(--line);}
+  .field:last-child{border-bottom:0;}
+  .field .k{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:4px;}
+  .field .v{font-size:14.5px;color:var(--text);font-weight:500;}
+  .field .v.big{font-size:16px;font-weight:700;}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  @media (min-width:560px){ body{max-width:620px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.05);} .sheet{max-width:620px;margin:0 auto;} }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="brand"><div class="logo">OCASA<span>/</span></div><div class="sub" data-i18n="brandSub">Life Sciences · POB</div></div>
+      <div class="lang"><button id="es" class="on" onclick="setLang('es')">ES</button><button id="en" onclick="setLang('en')">EN</button></div>
+    </div>
+    <div class="agentbar"><span class="dot"></span><span data-i18n="loggedAs">Conectado como</span><span class="who">Int. Latinoamer de Servicios Ltda</span></div>
+  </div>
+  <div class="head">
+    <h1 data-i18n="title">Resultado POB</h1>
+    <div class="date"><span data-i18n="forDate">Actualizado</span> 17/06/2026 · <span data-i18n="brazil">Brasil</span></div>
+  </div>
+  <div class="summary">
+    <div class="stat total on" data-f="all" onclick="setFilter('all',this)"><div class="n" id="stTotal">0</div><div class="l" data-i18n="cTotal">Total</div></div>
+    <div class="stat pend" data-f="pendiente" onclick="setFilter('pendiente',this)"><div class="n" id="stPend">0</div><div class="l" data-i18n="cPend">Pendientes</div></div>
+    <div class="stat reti" data-f="retirado" onclick="setFilter('retirado',this)"><div class="n" id="stReti">0</div><div class="l" data-i18n="cReti">Retirados</div></div>
+    <div class="stat canc" data-f="cancelado" onclick="setFilter('cancelado',this)"><div class="n" id="stCanc">0</div><div class="l" data-i18n="cCanc">Cancelados</div></div>
+  </div>
+  <div class="search"><input id="q" type="text" data-i18n-ph="searchPh" placeholder="Buscar por guía, cliente, ciudad"></div>
+  <div class="list" id="list"></div>
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head"><div><div class="doc" id="shDoc"></div><div class="sub" id="shSub"></div></div><button class="sheet-close" onclick="closeSheet()">&times;</button></div>
+    <div class="sheet-body" id="shBody"></div>
+  </div>
+<script>
+const POB = [{"doc": "PK283O171424", "equipo": "2852478314-20", "sol": "2852478314", "ap": "40034719", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "SANTO ANDRE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2JUE171427", "equipo": "2852478313-20", "sol": "2852478313", "ap": "40011027", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "SAO PAULO", "destino": "", "destinatario": "", "fpickup": "19/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2D6V171421", "equipo": "2852478312-20", "sol": "2852478312", "ap": "40034719", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "SAO PAULO", "destino": "", "destinatario": "", "fpickup": "25/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2QBF171425", "equipo": "2852477961-20", "sol": "2852477961", "ap": "40034746", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "SANTO ANDRE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2V8G171426", "equipo": "2852477960-20", "sol": "2852477960", "ap": "40019469", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "SAO PAULO", "destino": "", "destinatario": "", "fpickup": "19/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2Z11171420", "equipo": "2852477954-20", "sol": "2852477954", "ap": "40034746", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "SAO PAULO", "destino": "", "destinatario": "", "fpickup": "25/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2YQU138159", "equipo": "2852475868-20", "sol": "2852475868", "ap": "40034719", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "VOTUPORANGA", "destino": "", "destinatario": "", "fpickup": "19/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2YQA138161", "equipo": "2852475827-20", "sol": "2852475827", "ap": "40034746", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "VOTUPORANGA", "destino": "", "destinatario": "", "fpickup": "19/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "T1329974", "equipo": "2852474117-80", "sol": "2852474117", "ap": "40041352", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "REFRIGERADO", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "T1329973", "equipo": "2852474117-60", "sol": "2852474117", "ap": "40034719", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "T1329975", "equipo": "2852474117-40", "sol": "2852474117", "ap": "40034746", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "T1129451", "equipo": "2852445197-40", "sol": "2852445197", "ap": "40034746", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "BELO HORIZONTE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "T1129447", "equipo": "2852445197-20", "sol": "2852445197", "ap": "40034719", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "BELO HORIZONTE", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": "13:23"}, {"doc": "PK2TJB166372", "equipo": "1242238922", "sol": "2852150609", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "VOTUPORANGA", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2P3F151746", "equipo": "1242238921", "sol": "2852146489", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "VOTUPORANGA", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2SAS151745", "equipo": "1242238360", "sol": "2852146489", "ap": "40011027", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "VOTUPORANGA", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "T1390340", "equipo": "1242238359", "sol": "2852375054", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "VITORIA", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LAB", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "T1390339", "equipo": "1242238358", "sol": "2852341228", "ap": "40011027", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "VITORIA", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LAB", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2VAQ170356", "equipo": "1242238357", "sol": "2852418462", "ap": "40011027", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "SAO PAULO", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2U2L168875", "equipo": "1242238356", "sol": "2852266035", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "SAO JOSE DOS CAMPOS", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2ZRU168877", "equipo": "1242238355", "sol": "2852265310", "ap": "40011027", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "SAO JOSE DOS CAMPOS", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2XFR169260", "equipo": "1242238354", "sol": "2852370071", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "SAO JOSE DO RIO PRETO", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2HBM168049", "equipo": "1242238353", "sol": "2852249736", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "SAO JOSE DO RIO PRETO", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK20PN168047", "equipo": "1242238281", "sol": "2852249358", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "SAO JOSE DO RIO PRETO", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2SON169786", "equipo": "1242237880", "sol": "2852385178", "ap": "40019469", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "SALVADOR", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2GHX169768", "equipo": "1242237879", "sol": "2852384638", "ap": "40011027", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "SALVADOR", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:49"}, {"doc": "PK2J6H169127", "equipo": "1242237813", "sol": "2852299402", "ap": "40011027", "estCod": "HFD", "estDesc": "Pendiente de distribución", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "SALVADOR", "destino": "CINCINNATI", "destinatario": "PPD GLOBAL CENTRAL LABS", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "10:38"}, {"doc": "M3134665", "equipo": "1238269559", "sol": "2910301682", "ap": "40042775", "estCod": "STD", "estDesc": "Despachado", "cat": "retirado", "cliente": "PPD - Global Central Labs", "servicio": "OTRO", "origen": "CINCINNATI", "destino": "MANAUS", "destinatario": "FUNDACAO DE MEDICINA TROPICAL", "fpickup": "", "fmov": "29/05/2026", "hmov": "12:53"}, {"doc": "PK2DPE171399", "equipo": "2852476618-20", "sol": "2852476618", "ap": "40034719", "estCod": "PUR", "estDesc": "Asignado (en curso)", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "SAO PAULO", "destino": "", "destinatario": "", "fpickup": "17/06/2026", "fmov": "17/06/2026", "hmov": "08:36"}, {"doc": "PK2JHI171400", "equipo": "2852476617-20", "sol": "2852476617", "ap": "40034746", "estCod": "PUR", "estDesc": "Asignado (en curso)", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "SAO PAULO", "destino": "", "destinatario": "", "fpickup": "17/06/2026", "fmov": "17/06/2026", "hmov": "08:36"}, {"doc": "PK2GJC171410", "equipo": "2852477633-20", "sol": "2852477633", "ap": "40019469", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "BELEM", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": ""}, {"doc": "PK2UK8171407", "equipo": "2852477632-20", "sol": "2852477632", "ap": "40019469", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "CONGELADO", "origen": "CAMPINAS", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": ""}, {"doc": "PK2SKT171404", "equipo": "2852476999-20", "sol": "2852476999", "ap": "40011027", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "CAMPINAS", "destino": "", "destinatario": "", "fpickup": "18/06/2026", "fmov": "12/06/2026", "hmov": ""}, {"doc": "T1386554", "equipo": "2852257170-40", "sol": "2852257170", "ap": "40034746", "estCod": "PUS", "estDesc": "Pedido registrado", "cat": "pendiente", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "17/06/2026", "fmov": "12/06/2026", "hmov": ""}, {"doc": "PK2KMV157701", "equipo": "2852464733-20", "sol": "2852464733", "ap": "40011027", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "SAO JOSE DO RIO PRETO", "destino": "", "destinatario": "", "fpickup": "", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK28HT146495", "equipo": "2852464732-20", "sol": "2852464732", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "VOTUPORANGA", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "T1123730", "equipo": "2852446557-20", "sol": "2852446557", "ap": "40011027", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "INTERIOR DE SAO PAULO", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2EMZ168480", "equipo": "2852430520-40", "sol": "2852430520", "ap": "40037616", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "PPD - Global Central Labs", "servicio": "REFRIGERADO", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2GZ4168479", "equipo": "2852430520-20", "sol": "2852430520", "ap": "40011027", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "(sin guía)", "equipo": "2852424702-20", "sol": "2852424702", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK275F170255", "equipo": "2852414851-20", "sol": "2852414851", "ap": "40034719", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "BARRETOS", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "(sin guía)", "equipo": "2852412248-20", "sol": "2852412248", "ap": "40042184", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "CTI Clinical Trial Services", "servicio": "AMBIENTE", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "T1386552", "equipo": "2852394406-40", "sol": "2852394406", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2LY1169725", "equipo": "2852386108-20", "sol": "2852386108", "ap": "40037620", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "Medpace Labs", "servicio": "REFRIGERADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2QNP169723", "equipo": "2852384924-20", "sol": "2852384924", "ap": "40019467", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "Medpace Labs", "servicio": "CONGELADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "(sin guía)", "equipo": "2852384254-80", "sol": "2852384254", "ap": "40019472", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "BARRETOS", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "(sin guía)", "equipo": "2852383756-20", "sol": "2852383756", "ap": "40011085", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "BARRETOS", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2HKY169698", "equipo": "2852383073-20", "sol": "2852383073", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK26NS169684", "equipo": "2852382460-20", "sol": "2852382460", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "RECIFE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2QFL169609", "equipo": "2852379343-20", "sol": "2852379343", "ap": "40011027", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "PPD - Global Central Labs", "servicio": "AMBIENTE", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2BOW169556", "equipo": "2852375589-20", "sol": "2852375589", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "PORTO ALEGRE", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2ILA169514", "equipo": "2852375299-20", "sol": "2852375299", "ap": "40034719", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "SAO JOSE DO RIO PRETO", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2XQG169493", "equipo": "2852374936-20", "sol": "2852374936", "ap": "40034746", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "CONGELADO", "origen": "SAO JOSE DO RIO PRETO", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}, {"doc": "PK2U4N169481", "equipo": "2852374706-20", "sol": "2852374706", "ap": "40034719", "estCod": "RAO", "estDesc": "Recibido en OCASA", "cat": "retirado", "cliente": "IQVIA Laboratories LLC", "servicio": "AMBIENTE", "origen": "SAO JOSE DO RIO PRETO", "destino": "", "destinatario": "", "fpickup": "16/06/2026", "fmov": "17/06/2026", "hmov": "09:15"}];
+const I18N={
+ es:{brandSub:"Life Sciences · POB",loggedAs:"Conectado como",title:"Resultado POB",forDate:"Actualizado",brazil:"Brasil",
+   cTotal:"Total",cPend:"Pendientes",cReti:"Retirados",cCanc:"Cancelados",searchPh:"Buscar por guía, cliente, ciudad",
+   fStatus:"Estado",fClient:"Cliente",fService:"Servicio",fOrigin:"Origen",fDest:"Destino",fConsignee:"Destinatario",
+   fPickup:"Fecha de retiro",fMov:"Último movimiento",fEquip:"Equipo",fAP:"AP",fSol:"Solicitud",empty:"No se encontraron guías",
+   pendiente:"Pendiente",retirado:"Retirado",finalizado:"Finalizado",cancelado:"Cancelado",
+   CONGELADO:"Congelado",REFRIGERADO:"Refrigerado",AMBIENTE:"Ambiente",OTRO:"Otro"},
+ en:{brandSub:"Life Sciences · POB",loggedAs:"Signed in as",title:"POB Result",forDate:"Updated",brazil:"Brazil",
+   cTotal:"Total",cPend:"Pending",cReti:"Picked up",cCanc:"Cancelled",searchPh:"Search by waybill, client, city",
+   fStatus:"Status",fClient:"Client",fService:"Service",fOrigin:"Origin",fDest:"Destination",fConsignee:"Consignee",
+   fPickup:"Pickup date",fMov:"Last movement",fEquip:"Equipment",fAP:"AP",fSol:"Request",empty:"No waybills found",
+   pendiente:"Pending",retirado:"Picked up",finalizado:"Completed",cancelado:"Cancelled",
+   CONGELADO:"Frozen",REFRIGERADO:"Refrigerated",AMBIENTE:"Ambient",OTRO:"Other"}
+};
+let lang="es",query="",filter="all";
+function t(k){return I18N[lang][k]||k;}
+function applyI18n(){document.querySelectorAll("[data-i18n]").forEach(e=>e.textContent=t(e.dataset.i18n));document.querySelectorAll("[data-i18n-ph]").forEach(e=>e.placeholder=t(e.dataset.i18nPh));document.documentElement.lang=lang;}
+function setLang(l){lang=l;document.getElementById("es").classList.toggle("on",l==="es");document.getElementById("en").classList.toggle("on",l==="en");applyI18n();render();}
+function stats(){
+ document.getElementById("stTotal").textContent=POB.length;
+ document.getElementById("stPend").textContent=POB.filter(r=>r.cat==="pendiente").length;
+ document.getElementById("stReti").textContent=POB.filter(r=>r.cat==="retirado"||r.cat==="finalizado").length;
+ document.getElementById("stCanc").textContent=POB.filter(r=>r.cat==="cancelado").length;
+}
+function setFilter(f,el){filter=f;document.querySelectorAll(".stat").forEach(s=>s.classList.remove("on"));el.classList.add("on");render();}
+function matchF(r){ if(filter==="all")return true; if(filter==="retirado")return r.cat==="retirado"||r.cat==="finalizado"; return r.cat===filter; }
+function matchQ(r){ if(!query)return true; const s=(r.doc+" "+r.cliente+" "+r.origen+" "+r.destino+" "+r.equipo).toLowerCase(); return s.includes(query.toLowerCase()); }
+const ic={arrow:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'};
+function render(){
+ const root=document.getElementById("list");
+ const f=POB.filter(r=>matchF(r)&&matchQ(r));
+ if(!f.length){root.innerHTML='<div class="empty">'+t("empty")+'</div>';return;}
+ let h="";
+ f.forEach(r=>{
+  const i=POB.indexOf(r);
+  const dest=r.destino?r.destino:"—";
+  h+='<div class="card" onclick="openSheet('+i+')">';
+  h+='<div class="card-top"><div><div class="doc">'+r.doc+'</div><div class="cli">'+r.cliente+'</div></div>';
+  h+='<span class="stbadge '+r.cat+'">'+t(r.cat)+'</span></div>';
+  h+='<div class="route"><span class="city">'+(r.origen||"—")+'</span>';
+  if(r.destino){h+='<span class="arrow">'+ic.arrow+'</span><span class="city">'+r.destino+'</span>';}
+  h+='<span class="svc '+r.servicio+'">'+t(r.servicio)+'</span></div>';
+  h+='</div>';
+ });
+ root.innerHTML=h;
+}
+function field(k,v,big){if(!v)return"";return'<div class="field"><div class="k">'+k+'</div><div class="v'+(big?" big":"")+'">'+v+'</div></div>';}
+function openSheet(i){
+ const r=POB[i];
+ document.getElementById("shDoc").textContent=r.doc;
+ document.getElementById("shSub").textContent=r.cliente;
+ let b='<div class="field"><div class="k">'+t("fStatus")+'</div><div class="v"><span class="stbadge '+r.cat+'">'+t(r.cat)+' · '+r.estDesc+'</span></div></div>';
+ b+='<div class="twocol">'+field(t("fOrigin"),r.origen)+field(t("fDest"),r.destino)+'</div>';
+ b+=field(t("fConsignee"),r.destinatario);
+ b+='<div class="field"><div class="k">'+t("fService")+'</div><div class="v"><span class="svc '+r.servicio+'">'+t(r.servicio)+'</span></div></div>';
+ b+='<div class="twocol">'+field(t("fPickup"),r.fpickup)+field(t("fMov"),(r.fmov?r.fmov+(r.hmov?" "+r.hmov:""):""))+'</div>';
+ b+=field(t("fEquip"),r.equipo);
+ b+='<div class="twocol">'+field(t("fAP"),r.ap)+field(t("fSol"),r.sol)+'</div>';
+ document.getElementById("shBody").innerHTML=b;
+ document.getElementById("scrim").classList.add("on");
+ document.getElementById("sheet").classList.add("on");
+}
+function closeSheet(){document.getElementById("scrim").classList.remove("on");document.getElementById("sheet").classList.remove("on");}
+document.getElementById("q").addEventListener("input",e=>{query=e.target.value;render();});
+stats();applyI18n();render();
+</script>
+</body>
+</html>

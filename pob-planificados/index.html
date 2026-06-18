@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>POB Digital · Retiros Planificados</title>
+<style>
+  :root {
+    --ocasa-ink: #1a2740;
+    --ocasa-blue: #2563a8;
+    --ocasa-cyan: #19b9c4;
+    --ocasa-cyan-soft: #e6f7f8;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --line: #e4e9f0;
+    --text: #1a2740;
+    --muted: #6b7a90;
+    --frozen: #3b6fd4;
+    --frozen-bg: #eaf0fc;
+    --refri: #14a7b3;
+    --refri-bg: #e3f6f7;
+    --shadow: 0 1px 3px rgba(26,39,64,.06), 0 4px 16px rgba(26,39,64,.04);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+  body { padding-bottom: 40px; }
+
+  /* HEADER */
+  .topbar { background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 14px 18px; position: sticky; top: 0; z-index: 30; }
+  .topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .logo { font-weight: 800; font-size: 19px; letter-spacing: -.5px; color: var(--ocasa-ink); }
+  .brand .logo span { color: var(--ocasa-cyan); }
+  .brand .sub { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); font-weight: 600; border-left: 1px solid var(--line); padding-left: 10px; }
+  .lang { display: flex; gap: 2px; background: var(--bg); border-radius: 9px; padding: 3px; }
+  .lang button { border: 0; background: transparent; font-size: 12px; font-weight: 700;
+    color: var(--muted); padding: 5px 9px; border-radius: 7px; cursor: pointer; font-family: inherit; }
+  .lang button.on { background: var(--card); color: var(--ocasa-blue); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+  .agentbar { display: flex; align-items: center; gap: 8px; margin-top: 12px;
+    font-size: 12.5px; color: var(--muted); }
+  .agentbar .who { color: var(--text); font-weight: 700; }
+  .agentbar .dot { width: 7px; height: 7px; border-radius: 50%; background: #28c76f; flex: none; }
+
+  /* TITLE + FILTERS */
+  .head { padding: 20px 18px 8px; }
+  .head h1 { font-size: 23px; font-weight: 800; letter-spacing: -.6px; }
+  .head .date { color: var(--muted); font-size: 13px; margin-top: 3px; font-weight: 500; }
+
+  .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 18px 4px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat .n { font-size: 26px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted);
+    font-weight: 600; margin-top: 6px; }
+  .stat.accent .n { color: var(--ocasa-cyan); }
+
+  .search { padding: 12px 18px 6px; }
+  .search input { width: 100%; border: 1px solid var(--line); background: var(--card);
+    border-radius: 12px; padding: 12px 14px; font-size: 14.5px; font-family: inherit; color: var(--text);
+    box-shadow: var(--shadow); }
+  .search input:focus { outline: none; border-color: var(--ocasa-cyan); }
+
+  /* LOCALITY GROUPS */
+  .groups { padding: 8px 14px 0; }
+  .group { margin-bottom: 14px; }
+  .group-head { display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 8px; cursor: pointer; }
+  .group-head .left { display: flex; align-items: center; gap: 10px; }
+  .group-head .pin { width: 30px; height: 30px; border-radius: 9px; background: var(--ocasa-cyan-soft);
+    display: grid; place-items: center; flex: none; }
+  .group-head .pin svg { width: 16px; height: 16px; stroke: var(--refri); }
+  .group-head .loc { font-size: 15.5px; font-weight: 800; letter-spacing: -.3px; }
+  .group-head .count { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .group-head .chev { transition: transform .2s; color: var(--muted); }
+  .group.collapsed .chev { transform: rotate(-90deg); }
+  .group.collapsed .cards { display: none; }
+
+  .cards { display: flex; flex-direction: column; gap: 9px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow); cursor: pointer; transition: transform .12s, box-shadow .12s; }
+  .card:active { transform: scale(.985); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .card .doc { font-size: 14.5px; font-weight: 800; letter-spacing: -.3px; font-variant-numeric: tabular-nums; }
+  .card .rem { font-size: 13px; color: var(--text); margin-top: 3px; font-weight: 600; }
+  .card .addr { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .badge { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+    padding: 5px 9px; border-radius: 7px; white-space: nowrap; flex: none; }
+  .badge.CONGELADO { background: var(--frozen-bg); color: var(--frozen); }
+  .badge.REFRIGERADO { background: var(--refri-bg); color: var(--refri); }
+  .card-bot { display: flex; align-items: center; gap: 14px; margin-top: 11px;
+    padding-top: 11px; border-top: 1px dashed var(--line); }
+  .chip { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .chip svg { width: 13px; height: 13px; stroke: var(--muted); flex: none; }
+  .chip.time { color: var(--ocasa-blue); }
+  .chip.time svg { stroke: var(--ocasa-blue); }
+
+  .empty { text-align: center; color: var(--muted); padding: 50px 20px; font-size: 14px; }
+
+  /* DETAIL SHEET */
+  .scrim { position: fixed; inset: 0; background: rgba(26,39,64,.45); opacity: 0; pointer-events: none;
+    transition: opacity .25s; z-index: 40; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card);
+    border-radius: 22px 22px 0 0; z-index: 50; transform: translateY(100%); transition: transform .28s cubic-bezier(.32,.72,0,1);
+    max-height: 88vh; overflow-y: auto; padding-bottom: 28px; }
+  .sheet.on { transform: translateY(0); }
+  .sheet-grip { width: 40px; height: 4px; background: var(--line); border-radius: 3px; margin: 10px auto 4px; }
+  .sheet-head { padding: 8px 20px 16px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .sheet-head .doc { font-size: 19px; font-weight: 800; letter-spacing: -.5px; }
+  .sheet-head .iata { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .sheet-close { border: 0; background: var(--bg); width: 32px; height: 32px; border-radius: 50%;
+    font-size: 18px; color: var(--muted); cursor: pointer; flex: none; line-height: 1; }
+  .sheet-body { padding: 6px 20px; }
+  .field { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .field:last-child { border-bottom: 0; }
+  .field .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    font-weight: 700; margin-bottom: 4px; }
+  .field .v { font-size: 14.5px; color: var(--text); font-weight: 500; }
+  .field .v.big { font-size: 16px; font-weight: 700; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+
+  @media (min-width: 560px) {
+    .summary { grid-template-columns: repeat(4, 1fr); }
+    body { max-width: 620px; margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,.05); }
+    .sheet { max-width: 620px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="logo">OCASA<span>/</span></div>
+        <div class="sub" data-i18n="brandSub">Life Sciences · POB</div>
+      </div>
+      <div class="lang">
+        <button id="es" class="on" onclick="setLang('es')">ES</button>
+        <button id="en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+    <div class="agentbar">
+      <span class="dot"></span>
+      <span data-i18n="loggedAs">Conectado como</span>
+      <span class="who">Int. Latinoamer de Servicios Ltda</span>
+    </div>
+  </div>
+
+  <div class="head">
+    <h1 data-i18n="title">Retiros planificados</h1>
+    <div class="date"><span data-i18n="forDate">Para</span> 17/06/2026 · <span data-i18n="brazil">Brasil</span></div>
+  </div>
+
+  <div class="summary">
+    <div class="stat accent"><div class="n" id="stTotal">0</div><div class="l" data-i18n="stTotal">Retiros</div></div>
+    <div class="stat"><div class="n" id="stLoc">0</div><div class="l" data-i18n="stLoc">Localidades</div></div>
+    <div class="stat"><div class="n" id="stFro">0</div><div class="l" data-i18n="stFro">Congelado</div></div>
+    <div class="stat"><div class="n" id="stRef">0</div><div class="l" data-i18n="stRef">Refrigerado</div></div>
+  </div>
+
+  <div class="search">
+    <input id="q" type="text" data-i18n-ph="searchPh" placeholder="Buscar por documento, remitente o dirección">
+  </div>
+
+  <div class="groups" id="groups"></div>
+
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <div>
+        <div class="doc" id="shDoc"></div>
+        <div class="iata" id="shIata"></div>
+      </div>
+      <button class="sheet-close" onclick="closeSheet()">&times;</button>
+    </div>
+    <div class="sheet-body" id="shBody"></div>
+  </div>
+
+<script>
+const RETIROS = [{"doc": "PK2YED160530", "iata": "SAO", "material": 77, "servicio": "REFRIGERADO", "desde": "14:00", "hasta": "16:00", "localidad": "SAO PAULO", "remitente": "HOSPITAL DAS CLÍNICAS FMUSP", "direccion": "AV DR ENEAS DE CARVALHO AGUIAR Nº 155 -", "cp": "05403-000", "distrito": "SAO PAULO", "tel": "11 26617845", "pedido": "", "equipo": "2851752381-20", "fecha": "20260617"}, {"doc": "88-SINMOV", "iata": "SAO", "material": 77, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "SAO PAULO", "remitente": "HOSPITAL DAS CLÍNICAS FMUSP", "direccion": "AV DR ENEAS DE CARVALHO AGUIAR Nº 155 -", "cp": "05403-000", "distrito": "SAO PAULO", "tel": "11 26617845", "pedido": "JOÃO LACERDA", "equipo": "2852117542-20", "fecha": "20260617"}, {"doc": "PK28TB152469", "iata": "SAO", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "SAO PAULO", "remitente": "CEPIC", "direccion": "RUA MOREIRA E COSTA Nº 342", "cp": "04266-000", "distrito": "SAO PAULO", "tel": "11 2271-3459", "pedido": "", "equipo": "2851297698-20", "fecha": "20260617"}, {"doc": "PK2W79152667", "iata": "SAO", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "SAO PAULO", "remitente": "CEPIC", "direccion": "RUA MOREIRA E COSTA Nº 342", "cp": "04266-000", "distrito": "SAO PAULO", "tel": "55 11 2271-3459", "pedido": "", "equipo": "2851324328-20", "fecha": "20260617"}, {"doc": "PK2A0E152402", "iata": "SAO", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "SAO PAULO", "remitente": "CEPIC", "direccion": "RUA MOREIRA E COSTA Nº 342", "cp": "04266-000", "distrito": "SAO PAULO", "tel": "11 2271-3459", "pedido": "", "equipo": "2851294119-20", "fecha": "20260617"}, {"doc": "PK2NIO152663", "iata": "SAO", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "SAO PAULO", "remitente": "CEPIC", "direccion": "RUA MOREIRA E COSTA Nº 342", "cp": "04266-000", "distrito": "SAO PAULO", "tel": "55 11 2271-3459", "pedido": "", "equipo": "2851325133-20", "fecha": "20260617"}, {"doc": "PK2YHO166444", "iata": "POA", "material": 77, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "PORTO ALEGRE", "remitente": "HOSPITAL SANTA CASA DE MISERICÓDIA", "direccion": "RUA PROF ANNE DIAS N° 295 - 2° ANDAR", "cp": "90020-000", "distrito": "PORTO ALEGRE", "tel": "51 3214 8640", "pedido": "", "equipo": "2852151881-20", "fecha": "20260617"}, {"doc": "PK25FH167616", "iata": "POA", "material": 77, "servicio": "REFRIGERADO", "desde": "12:00", "hasta": "14:00", "localidad": "PORTO ALEGRE", "remitente": "SANTA CASA DE MISERICÓDIA DE PORTO", "direccion": "RUA SARMENTO LEITE N° 187", "cp": "90050-000", "distrito": "PORTO ALEGRE", "tel": "51 32137216", "pedido": "", "equipo": "2852212197-20", "fecha": "20260617"}, {"doc": "PK25MC160293", "iata": "POA", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "PORTO ALEGRE", "remitente": "HOSPITAL MOINHOS DE VENTO", "direccion": "RUA RAMIROS BARCELOS N° 910 - 3° ANDAR S", "cp": "90035-000", "distrito": "PORTO ALEGRE", "tel": "51 33142884", "pedido": "", "equipo": "2851748942-20", "fecha": "20260617"}, {"doc": "PK2RTO161661", "iata": "POA", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "PORTO ALEGRE", "remitente": "HOSPITAL MOINHOS DE VENTO", "direccion": "RUA RAMIROS BARCELOS N° 910 - 3° ANDAR S", "cp": "90035-000", "distrito": "PORTO ALEGRE", "tel": "51 33142884", "pedido": "", "equipo": "2851806792-20", "fecha": "20260617"}, {"doc": "PK29HU164127", "iata": "POA", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "PORTO ALEGRE", "remitente": "HOSPITAL DE CLÍNICAS DE PORTO ALEGR", "direccion": "RUA RAMIRO BARCELOS N°2350 PRÉDIO 21 SAL", "cp": "90035-000", "distrito": "PORTO ALEGRE", "tel": "51 3359 6340", "pedido": "", "equipo": "2852030068-20", "fecha": "20260617"}, {"doc": "PK2NCG166310", "iata": "POA", "material": 36, "servicio": "REFRIGERADO", "desde": "11:30", "hasta": "13:30", "localidad": "PORTO ALEGRE", "remitente": "NUCLEO DE PESQUISA DO RS", "direccion": "RUA MOSTARDEIRO N° 5 SALA 310", "cp": "90430-000", "distrito": "PORTO ALEGRE", "tel": "51 3779 6400", "pedido": "", "equipo": "2852148490-20", "fecha": "20260617"}, {"doc": "PK2ZYK167043", "iata": "SSA", "material": 77, "servicio": "REFRIGERADO", "desde": "12:00", "hasta": "14:00", "localidad": "SALVADOR", "remitente": "HOSPITAL SÃO RAFAEL", "direccion": "AV SÃO RAFAEL Nº  2152", "cp": "41253-000", "distrito": "SALVADOR", "tel": "71 3281 6965", "pedido": "", "equipo": "2852174847-20", "fecha": "20260617"}, {"doc": "T1339996", "iata": "SSA", "material": 77, "servicio": "REFRIGERADO", "desde": "12:00", "hasta": "14:00", "localidad": "SALVADOR", "remitente": "HOSPITAL SÃO RAFAEL", "direccion": "AV SÃO RAFAEL, Nº 2152, SÃO MARCOS", "cp": "41253-000", "distrito": "SALVADOR", "tel": "71 32816965", "pedido": "MAIARA ALMEIDA FK", "equipo": "2852252517-20", "fecha": "20260617"}, {"doc": "PK2JZQ169359", "iata": "SSA", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "SALVADOR", "remitente": "INOVACE PESQUISA CLÍNICA", "direccion": "AV TANCREDO NEVES N° 1632", "cp": "41820-000", "distrito": "SALVADOR", "tel": "71 3190 1903", "pedido": "LEIVA FK", "equipo": "2851823446-20", "fecha": "20260617"}, {"doc": "88-SINMOV", "iata": "SSA", "material": 46, "servicio": "CONGELADO", "desde": "12:00", "hasta": "14:00", "localidad": "SALVADOR", "remitente": "HOSPITAL SAO RAFAEL", "direccion": "AV SAO RAFAEL Nº 2152", "cp": "41253-000", "distrito": "SALVADOR", "tel": "71 32816965", "pedido": "ALESSANDRA FK", "equipo": "2852169996-20", "fecha": "20260617"}, {"doc": "PK2XMK167005", "iata": "SSA", "material": 36, "servicio": "REFRIGERADO", "desde": "12:00", "hasta": "14:00", "localidad": "SALVADOR", "remitente": "HOSPITAL SÃO RAFAEL", "direccion": "AV SÃO RAFAEL Nº  2152", "cp": "41253-000", "distrito": "SALVADOR", "tel": "71 3281 6965", "pedido": "", "equipo": "2852173361-20", "fecha": "20260617"}, {"doc": "PK2FUA167009", "iata": "SSA", "material": 36, "servicio": "REFRIGERADO", "desde": "12:00", "hasta": "14:00", "localidad": "SALVADOR", "remitente": "HOSPITAL SÃO RAFAEL", "direccion": "AV SÃO RAFAEL Nº  2152", "cp": "41253-000", "distrito": "SALVADOR", "tel": "71 3281 6965", "pedido": "", "equipo": "2852174229-20", "fecha": "20260617"}, {"doc": "88-SINMOV", "iata": "CWB", "material": 77, "servicio": "REFRIGERADO", "desde": "14:00", "hasta": "16:00", "localidad": "CURITIBA", "remitente": "INSTITUTO PRÓ RENAL BRASIL", "direccion": "AV VICENTE MACHADO Nº 2190", "cp": "80840-000", "distrito": "", "tel": "41 3027 5442", "pedido": "MARIANA PASTORE SAIKO", "equipo": "2852028256-20", "fecha": "20260617"}, {"doc": "PK2SBM167952", "iata": "CWB", "material": 77, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "CURITIBA", "remitente": "CETI", "direccion": "AV AGOSTINHO LEAO JUNIOR Nº 306", "cp": "80030-000", "distrito": "CURITIBA", "tel": "", "pedido": "", "equipo": "2852247378-20", "fecha": "20260617"}, {"doc": "PK2QQR146591", "iata": "CWB", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "CURITIBA", "remitente": "CENTRO ROSANGELA REA", "direccion": "RUA ALMIRANTE TAMANDARE Nº 1000", "cp": "80045-000", "distrito": "CURITIBA", "tel": "41 3362 9778", "pedido": "", "equipo": "2850965244-20", "fecha": "20260617"}, {"doc": "PK218Z146623", "iata": "CWB", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "CURITIBA", "remitente": "QUANTA DIAGÓSTICO POR IMAGEM", "direccion": "RUA ALMIRANTE TAMANDARE Nº 1000", "cp": "80045-000", "distrito": "CURITIBA", "tel": "41 98783 0350", "pedido": "", "equipo": "2850965863-20", "fecha": "20260617"}, {"doc": "PK2ALF146590", "iata": "CWB", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "CURITIBA", "remitente": "CENTRO ROSANGELA REA", "direccion": "RUA ALMIRANTE TAMANDARE Nº 1000", "cp": "80045-000", "distrito": "CURITIBA", "tel": "41 3362 9778", "pedido": "", "equipo": "2850965283-20", "fecha": "20260617"}, {"doc": "PK2C3G146618", "iata": "CWB", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "CURITIBA", "remitente": "QUANTA DIAGÓSTICO POR IMAGEM", "direccion": "RUA ALMIRANTE TAMANDARE Nº 1000", "cp": "80045-000", "distrito": "CURITIBA", "tel": "41 98783 0350", "pedido": "", "equipo": "2850965738-20", "fecha": "20260617"}, {"doc": "T1349089", "iata": "RIO", "material": 77, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "RIO DE JANEIRO", "remitente": "HOSPITAL UNIVERSITÁRIO PEDRO ERNEST", "direccion": "AV. BOULEVARD 28 DE SETEMBRO", "cp": "20551-000", "distrito": "RIO DE JANEIRO", "tel": "(21) 99122-3257", "pedido": "CLAUDIA FK", "equipo": "2852370407-60", "fecha": "20260617"}, {"doc": "T1358352", "iata": "RIO", "material": 77, "servicio": "REFRIGERADO", "desde": "07:40", "hasta": "07:40", "localidad": "RIO DE JANEIRO", "remitente": "JULIANE WOEHL BARROSO", "direccion": "RUA MARIA SILVA 96 APTO 302", "cp": "21941-000", "distrito": "RIO DE JANEIRO", "tel": "55 27 998119633", "pedido": "NATACHA", "equipo": "2852372585-80", "fecha": "20260617"}, {"doc": "PK2WJL166630", "iata": "RIO", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "RIO DE JANEIRO", "remitente": "HOSPITAL UNIVERSITÁRIO PEDRO ERNEST", "direccion": "AV BOULEVARD 28 DE SETEMBRO N° 77 - 2 °", "cp": "20251-000", "distrito": "RIO DE JANEIRO", "tel": "21 972974080", "pedido": "", "equipo": "2852159889-20", "fecha": "20260617"}, {"doc": "T1304487", "iata": "RIO", "material": 46, "servicio": "CONGELADO", "desde": "15:00", "hasta": "17:00", "localidad": "RIO DE JANEIRO", "remitente": "HOSPITAL SÃO LUCAS COPACABANA", "direccion": "TRAVESSA FREDERICO PAMPLONA, 15 (CASA)", "cp": "22061-000", "distrito": "RIO DE JANEIRO", "tel": "21) 2545-4348", "pedido": "ISABELLE FK", "equipo": "2852191331-500", "fecha": "20260617"}, {"doc": "PK2SKD166624", "iata": "RIO", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "RIO DE JANEIRO", "remitente": "HOSPITAL UNIVERSITÁRIO PEDRO ERNEST", "direccion": "AV BOULEVARD 28 DE SETEMBRO N° 77 - 2 °", "cp": "20251-000", "distrito": "RIO DE JANEIRO", "tel": "21 972974080", "pedido": "", "equipo": "2852158520-20", "fecha": "20260617"}, {"doc": "T1304486", "iata": "RIO", "material": 36, "servicio": "REFRIGERADO", "desde": "15:00", "hasta": "17:00", "localidad": "RIO DE JANEIRO", "remitente": "HOSPITAL SÃO LUCAS COPACABANA", "direccion": "TRAVESSA FREDERICO PAMPLONA, 15 (CASA)", "cp": "22061-000", "distrito": "RIO DE JANEIRO", "tel": "21) 2545-4348", "pedido": "ISABELLE FK", "equipo": "2852191331-480", "fecha": "20260617"}, {"doc": "PK2UUL166913", "iata": "CPQ", "material": 46, "servicio": "CONGELADO", "desde": "14:00", "hasta": "16:00", "localidad": "CAMPINAS", "remitente": "PUCCAMP", "direccion": "AV JONH BOYD DUNLOP S/N", "cp": "13060-000", "distrito": "CAMPINAS", "tel": "19 3343 8124", "pedido": "", "equipo": "2852168931-20", "fecha": "20260617"}, {"doc": "PK2YGB168314", "iata": "CPQ", "material": 46, "servicio": "CONGELADO", "desde": "14:00", "hasta": "16:00", "localidad": "CAMPINAS", "remitente": "HOSPITAL DA PUC CAMPINAS", "direccion": "AV JONH BOYD DUNLOP N° 120", "cp": "13032-000", "distrito": "CAMPINAS", "tel": "19 3343 8119", "pedido": "", "equipo": "2852252271-20", "fecha": "20260617"}, {"doc": "PK24ZP166912", "iata": "CPQ", "material": 36, "servicio": "REFRIGERADO", "desde": "14:00", "hasta": "16:00", "localidad": "CAMPINAS", "remitente": "PUCCAMP", "direccion": "AV JONH BOYD DUNLOP S/N", "cp": "13060-000", "distrito": "CAMPINAS", "tel": "19 3343 8124", "pedido": "", "equipo": "2852170217-20", "fecha": "20260617"}, {"doc": "PK2UAY168277", "iata": "CPQ", "material": 36, "servicio": "REFRIGERADO", "desde": "14:00", "hasta": "16:00", "localidad": "CAMPINAS", "remitente": "PUCCAMP", "direccion": "AV JONH BOYD DUNLOP S/N", "cp": "13060-000", "distrito": "CAMPINAS", "tel": "19 3343 8450", "pedido": "", "equipo": "2852253898-20", "fecha": "20260617"}, {"doc": "PK22MV168624", "iata": "FOR", "material": 77, "servicio": "REFRIGERADO", "desde": "15:00", "hasta": "17:00", "localidad": "FORTALEZA", "remitente": "CRIO - CENTRO REGIONAL INTEGRADO DE", "direccion": "RUA FRANCISCO CALAÇA N° 1300", "cp": "60336-000", "distrito": "FORTALEZA", "tel": "85 3286 5934", "pedido": "", "equipo": "2852261436-20", "fecha": "20260617"}, {"doc": "PK22EL153835", "iata": "FOR", "material": 46, "servicio": "CONGELADO", "desde": "15:00", "hasta": "17:00", "localidad": "FORTALEZA", "remitente": "CLÍNICA INTEGRARE TERAPÊUTICA", "direccion": "RUA JOSÉ VILAR N° 1541", "cp": "60125-000", "distrito": "FORTALEZA", "tel": "85 3038 8446", "pedido": "", "equipo": "2851405220-20", "fecha": "20260617"}, {"doc": "PK2LT2153837", "iata": "FOR", "material": 46, "servicio": "CONGELADO", "desde": "15:00", "hasta": "17:00", "localidad": "FORTALEZA", "remitente": "CLÍNICA INTEGRARE TERAPÊUTICA", "direccion": "RUA JOSÉ VILAR N° 1541", "cp": "60125-000", "distrito": "FORTALEZA", "tel": "85 3038 8446", "pedido": "", "equipo": "2851405713-20", "fecha": "20260617"}, {"doc": "PK2MGJ153834", "iata": "FOR", "material": 36, "servicio": "REFRIGERADO", "desde": "15:00", "hasta": "17:00", "localidad": "FORTALEZA", "remitente": "CLÍNICA INTEGRARE TERAPÊUTICA", "direccion": "RUA JOSÉ VILAR N° 1541", "cp": "60125-000", "distrito": "FORTALEZA", "tel": "85 3038 8446", "pedido": "", "equipo": "2851405215-20", "fecha": "20260617"}, {"doc": "PK2FKA153836", "iata": "FOR", "material": 36, "servicio": "REFRIGERADO", "desde": "15:00", "hasta": "17:00", "localidad": "FORTALEZA", "remitente": "CLÍNICA INTEGRARE TERAPÊUTICA", "direccion": "RUA JOSÉ VILAR N° 1541", "cp": "60125-000", "distrito": "FORTALEZA", "tel": "85 3038 8446", "pedido": "", "equipo": "2851405723-20", "fecha": "20260617"}, {"doc": "PK2ZFH157338", "iata": "AJU", "material": 46, "servicio": "CONGELADO", "desde": "11:00", "hasta": "13:00", "localidad": "ARACAJU", "remitente": "JMF CLINICA DO CORAÇÃO", "direccion": "RUA PERMINIO DE SOUZA Nº 160", "cp": "49055-000", "distrito": "ARACAJU", "tel": "79 30259700", "pedido": "TAMYRES GALVAO", "equipo": "2851549420-20", "fecha": "20260617"}, {"doc": "PK2DZH157674", "iata": "AJU", "material": 46, "servicio": "CONGELADO", "desde": "13:00", "hasta": "15:00", "localidad": "ARACAJU", "remitente": "CENTRO DE PESQUISA CLÍNICA DO CORAÇ", "direccion": "RUA PERMINIO DE SOUZA N° 160", "cp": "49055-000", "distrito": "ARACAJU", "tel": "79 3025 9700", "pedido": "TAMYRES GALVÃO", "equipo": "2851574186-20", "fecha": "20260617"}, {"doc": "PK2FRW157398", "iata": "AJU", "material": 36, "servicio": "REFRIGERADO", "desde": "11:00", "hasta": "13:00", "localidad": "ARACAJU", "remitente": "JMF CLINICA DO CORAÇÃO", "direccion": "RUA PERMINIO DE SOUZA Nº 160", "cp": "49055-000", "distrito": "ARACAJU", "tel": "79 30259700", "pedido": "", "equipo": "2851550847-20", "fecha": "20260617"}, {"doc": "PK2SGQ157620", "iata": "AJU", "material": 36, "servicio": "REFRIGERADO", "desde": "13:00", "hasta": "15:00", "localidad": "ARACAJU", "remitente": "CENTRO DE PESQUISA CLÍNICA DO CORAÇ", "direccion": "RUA PERMINIO DE SOUZA N° 160", "cp": "49055-000", "distrito": "ARACAJU", "tel": "79 3025 9700", "pedido": "TAMYRES GALVÃO", "equipo": "2851573658-20", "fecha": "20260617"}];
+
+const I18N = {
+  es: { brandSub:"Life Sciences · POB", loggedAs:"Conectado como", title:"Retiros planificados",
+    forDate:"Para", brazil:"Brasil", stTotal:"Retiros", stLoc:"Localidades", stFro:"Congelado", stRef:"Refrigerado",
+    searchPh:"Buscar por documento, remitente o dirección", retiros:"retiros", retiro:"retiro",
+    fService:"Servicio", fWindow:"Ventana de retiro", fSender:"Remitente", fAddress:"Dirección de retiro",
+    fDistrict:"Distrito", fCP:"Código postal", fPhone:"Teléfono", fRequester:"Solicitado por",
+    fEquip:"Equipo", fIata:"Origen IATA", empty:"No se encontraron retiros", CONGELADO:"Congelado", REFRIGERADO:"Refrigerado" },
+  en: { brandSub:"Life Sciences · POB", loggedAs:"Signed in as", title:"Planned pickups",
+    forDate:"For", brazil:"Brazil", stTotal:"Pickups", stLoc:"Localities", stFro:"Frozen", stRef:"Refrigerated",
+    searchPh:"Search by document, sender or address", retiros:"pickups", retiro:"pickup",
+    fService:"Service", fWindow:"Pickup window", fSender:"Sender", fAddress:"Pickup address",
+    fDistrict:"District", fCP:"Postal code", fPhone:"Phone", fRequester:"Requested by",
+    fEquip:"Equipment", fIata:"IATA origin", empty:"No pickups found", CONGELADO:"Frozen", REFRIGERADO:"Refrigerated" }
+};
+let lang = "es";
+let query = "";
+
+function t(k){ return I18N[lang][k] || k; }
+
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
+  document.documentElement.lang = lang;
+}
+function setLang(l){
+  lang = l;
+  document.getElementById("es").classList.toggle("on", l==="es");
+  document.getElementById("en").classList.toggle("on", l==="en");
+  applyI18n(); render();
+}
+
+function stats(){
+  const locs = new Set(RETIROS.map(r=>r.localidad));
+  document.getElementById("stTotal").textContent = RETIROS.length;
+  document.getElementById("stLoc").textContent = locs.size;
+  document.getElementById("stFro").textContent = RETIROS.filter(r=>r.servicio==="CONGELADO").length;
+  document.getElementById("stRef").textContent = RETIROS.filter(r=>r.servicio==="REFRIGERADO").length;
+}
+
+function matchQ(r){
+  if(!query) return true;
+  const s = (r.doc+" "+r.remitente+" "+r.direccion+" "+r.localidad).toLowerCase();
+  return s.includes(query.toLowerCase());
+}
+
+const icons = {
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  plane:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2Z"/></svg>'
+};
+
+function render(){
+  const root = document.getElementById("groups");
+  const filtered = RETIROS.filter(matchQ);
+  if(filtered.length===0){ root.innerHTML = '<div class="empty">'+t("empty")+'</div>'; return; }
+  const byLoc = {};
+  filtered.forEach(r=>{ (byLoc[r.localidad]=byLoc[r.localidad]||[]).push(r); });
+  const locNames = Object.keys(byLoc).sort();
+  let html = "";
+  locNames.forEach((loc,idx)=>{
+    const items = byLoc[loc];
+    const cntLabel = items.length+" "+(items.length===1?t("retiro"):t("retiros"));
+    html += '<div class="group" data-loc="'+idx+'">';
+    html += '<div class="group-head" onclick="toggleGroup('+idx+')">';
+    html += '<div class="left"><div class="pin">'+icons.pin+'</div><div><div class="loc">'+loc+'</div><div class="count">'+cntLabel+'</div></div></div>';
+    html += '<div class="chev">'+icons.chev+'</div></div>';
+    html += '<div class="cards">';
+    items.forEach(r=>{
+      const i = RETIROS.indexOf(r);
+      html += '<div class="card" onclick="openSheet('+i+')">';
+      html += '<div class="card-top"><div><div class="doc">'+r.doc+'</div><div class="rem">'+r.remitente+'</div><div class="addr">'+r.direccion+'</div></div>';
+      html += '<span class="badge '+r.servicio+'">'+t(r.servicio)+'</span></div>';
+      html += '<div class="card-bot"><span class="chip time">'+icons.clock+r.desde+' – '+r.hasta+'</span>';
+      html += '<span class="chip">'+icons.plane+r.iata+'</span></div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  root.innerHTML = html;
+}
+
+function toggleGroup(idx){
+  document.querySelector('.group[data-loc="'+idx+'"]').classList.toggle("collapsed");
+}
+
+function field(k, v, big){
+  if(!v) return "";
+  return '<div class="field"><div class="k">'+k+'</div><div class="v'+(big?" big":"")+'">'+v+'</div></div>';
+}
+
+function openSheet(i){
+  const r = RETIROS[i];
+  document.getElementById("shDoc").textContent = r.doc;
+  document.getElementById("shIata").textContent = t("fIata")+": "+r.iata;
+  let b = "";
+  b += '<div class="field"><div class="k">'+t("fService")+'</div><div class="v"><span class="badge '+r.servicio+'">'+t(r.servicio)+'</span></div></div>';
+  b += field(t("fWindow"), r.desde+" – "+r.hasta, true);
+  b += field(t("fSender"), r.remitente, true);
+  b += field(t("fAddress"), r.direccion);
+  b += '<div class="twocol">'+field(t("fDistrict"), r.distrito)+field(t("fCP"), r.cp)+'</div>';
+  b += '<div class="twocol">'+field(t("fPhone"), r.tel)+field(t("fRequester"), r.pedido)+'</div>';
+  b += field(t("fEquip"), r.equipo);
+  document.getElementById("shBody").innerHTML = b;
+  document.getElementById("scrim").classList.add("on");
+  document.getElementById("sheet").classList.add("on");
+}
+function closeSheet(){
+  document.getElementById("scrim").classList.remove("on");
+  document.getElementById("sheet").classList.remove("on");
+}
+
+document.getElementById("q").addEventListener("input", e=>{ query = e.target.value; render(); });
+
+stats(); applyI18n(); render();
+</script>
+</body>
+</html>
